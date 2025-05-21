@@ -5,30 +5,21 @@
 #include "esp_netif.h"
 #include "esp_http_server.h"
 #include "config.h"
+#include "form_html.h"
 #include <string.h>
 
 #define TAG "PROVISIONING"
 static httpd_handle_t server = NULL;
 
-static esp_err_t handle_get(httpd_req_t *req) {
-    const char *form_html =
-        "<html><body><h2>Soil Sensor Setup</h2>"
-        "<form method='POST'>"
-        "SSID: <input name='ssid'><br>"
-        "Password: <input name='password' type='password'><br>"
-        "MQTT Host: <input name='mqtt_host'><br>"
-        "MQTT Port: <input name='mqtt_port' type='number'><br>"
-        "MQTT User: <input name='mqtt_user'><br>"
-        "MQTT Pass: <input name='mqtt_pass' type='password'><br>"
-        "Sleep (min): <input name='sleep_interval' type='number'><br>"
-        "<input type='submit' value='Save'></form></body></html>";
 
+
+static esp_err_t handle_get(httpd_req_t *req) {
     httpd_resp_send(req, form_html, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
 static esp_err_t handle_post(httpd_req_t *req) {
-    char buf[512];
+    char buf[1024];
     int ret = httpd_req_recv(req, buf, sizeof(buf));
     if (ret <= 0) return ESP_FAIL;
     buf[ret] = '\0';
@@ -56,11 +47,70 @@ static httpd_uri_t uri_post = {
     .handler = handle_post
 };
 
-static void start_http_server(void) {
+
+
+static esp_err_t handle_scan(httpd_req_t *req) {
+    ESP_LOGI(TAG, ">> handle_scan() called");
+
+    wifi_scan_config_t scan_config = {
+        .ssid = NULL,
+        .bssid = NULL,
+        .channel = 0,
+        .show_hidden = true
+    };
+
+    esp_err_t err = esp_wifi_scan_start(&scan_config, true);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Scan start failed: %s", esp_err_to_name(err));
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Scan failed");
+        return err;
+    }
+
+    uint16_t ap_num = 0;
+    wifi_ap_record_t ap_records[20];
+    esp_wifi_scan_get_ap_num(&ap_num);
+    if (ap_num > 20) ap_num = 20;
+    esp_wifi_scan_get_ap_records(&ap_num, ap_records);
+
+    ESP_LOGI(TAG, "Found %d networks", ap_num);
+
+    for (int i = 0; i < ap_num; i++) {
+        ESP_LOGI(TAG, "SSID[%d]: %s, RSSI: %d", i, ap_records[i].ssid, ap_records[i].rssi);
+    }
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr_chunk(req, "[");
+
+    for (int i = 0; i < ap_num; i++) {
+        httpd_resp_sendstr_chunk(req, "\"");
+        httpd_resp_sendstr_chunk(req, (const char *)ap_records[i].ssid);
+        httpd_resp_sendstr_chunk(req, i < ap_num - 1 ? "\"," : "\"");
+    }
+
+    httpd_resp_sendstr_chunk(req, "]");
+    httpd_resp_sendstr_chunk(req, NULL);
+
+    ESP_LOGI(TAG, "<< handle_scan() done");
+    return ESP_OK;
+}
+
+static void start_http_server(void) 
+{
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.stack_size = 8192;  // Aumenta da 4096 a 8192
+    config.max_open_sockets = 4;
+    config.recv_wait_timeout = 10;
+
     httpd_start(&server, &config);
     httpd_register_uri_handler(server, &uri_get);
     httpd_register_uri_handler(server, &uri_post);
+
+    httpd_uri_t uri_scan = {
+        .uri = "/scan",
+        .method = HTTP_GET,
+        .handler = handle_scan
+    };
+    httpd_register_uri_handler(server, &uri_scan);
 }
 
 void start_wifi_provisioning(void) {
@@ -70,7 +120,7 @@ void start_wifi_provisioning(void) {
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&cfg);
-    esp_wifi_set_mode(WIFI_MODE_AP);
+    esp_wifi_set_mode(WIFI_MODE_APSTA);
 
     wifi_config_t ap_config = {
         .ap = {
@@ -109,3 +159,7 @@ void wifi_connect_from_config(void) {
 
     ESP_LOGI(TAG, "Connecting to Wi-Fi...");
 }
+
+
+
+
