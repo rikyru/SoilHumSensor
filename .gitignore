@@ -1,0 +1,15 @@
+# ESP-IDF build artifacts
+build/
+*.bin
+*.elf
+*.map
+sdkconfig.old
+sdkconfig.defaults
+
+# ESP-IDF Python envs (opzionali)
+.python_env/
+__pycache__/
+*.pyc
+
+# VSCode settings (opzionale)
+.vscode/
