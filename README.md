@@ -22,6 +22,7 @@ A battery-powered soil humidity sensor using an ESP32-C3, designed for ultra-low
 ```bash
 idf.py set-target esp32c3
 idf.py build flash monitor
+```
 
 ## 🟢 First Boot
 
