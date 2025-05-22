@@ -34,9 +34,9 @@ idf.py build flash monitor
 
 ## 🧪 Hardware Requirements
 
-- **ESP32-C3** (e.g., DevKitM-1 or SuperMini)
+- **ESP32-C3** (Used Xiao ESP32C3, it integrates battery charge circuit)
 - **Capacitive soil humidity sensor**
-- **Voltage divider** for battery monitoring
+- **Voltage divider** for battery monitoring (see https://forum.seeedstudio.com/t/battery-voltage-monitor-and-ad-conversion-for-xiao-esp32c/267535)
 - *(Optional)* Reset button and status LED
 
 ---
