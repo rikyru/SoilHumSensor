@@ -4,7 +4,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "wifi_provisioning.h"
-#include "mqtt_client.h"
+#include "mqtt_wrapper.h"
 #include "sensor.h"
 #include "sleep_control.h"
 #include "config.h"
