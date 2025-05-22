@@ -7,6 +7,7 @@
 #include "config.h"
 #include "form_html.h"
 #include <string.h>
+#include "esp_mac.h"
 
 #define TAG "PROVISIONING"
 static httpd_handle_t server = NULL;
@@ -117,6 +118,11 @@ void start_wifi_provisioning(void) {
     esp_netif_init();
     esp_event_loop_create_default();
     esp_netif_create_default_wifi_ap();
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_SOFTAP);  // oppure ESP_MAC_WIFI_STA
+
+    char ssid[32];
+    snprintf(ssid, sizeof(ssid), "SoilSensor%02X%02X", mac[4], mac[5]);
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&cfg);
@@ -124,18 +130,18 @@ void start_wifi_provisioning(void) {
 
     wifi_config_t ap_config = {
         .ap = {
-            .ssid = "SoilSensor",
-            .ssid_len = 0,
+            .ssid_len = strlen(ssid),
             .channel = 1,
             .password = "",
             .max_connection = 4,
             .authmode = WIFI_AUTH_OPEN
         },
     };
+    strcpy((char *)ap_config.ap.ssid, ssid);
     esp_wifi_set_config(ESP_IF_WIFI_AP, &ap_config);
     esp_wifi_start();
 
-    ESP_LOGI(TAG, "Access point started. Connect to 'SoilSensor' and go to 192.168.4.1");
+    ESP_LOGI(TAG, "Access point started. Connect to '%s' and go to 192.168.4.1", ssid);
     start_http_server();
 }
 
