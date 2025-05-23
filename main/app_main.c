@@ -8,6 +8,9 @@
 #include "sensor.h"
 #include "sleep_control.h"
 #include "config.h"
+#include "mqtt_client.h"
+
+
 
 void app_main(void) {
     esp_err_t ret = nvs_flash_init();
@@ -25,8 +28,13 @@ void app_main(void) {
     }
 
     wifi_connect_from_config();
-    // if (!mqtt_client_start()) {
-    //     handle_mqtt_failure();
+    start_mqtt();
+    // TBD
+    // vTaskDelay(pdMS_TO_TICKS(3000));
+    // if (!esp_mqtt_client_is_connected()) 
+    // {
+    //     // TBD
+    //     //handle_mqtt_failure();
     //     return;
     // }
 
