@@ -1,3 +1,9 @@
+/**
+ * @file mqtt_wrapper.c
+ * @brief MQTT client wrapper for soil humidity sensor
+ * @details Handles MQTT connection, message publishing and HomeAssistant discovery
+ */
+
 #include "mqtt_wrapper.h"
 #include "esp_log.h"
 #include "config.h"
@@ -9,17 +15,36 @@
 #include <inttypes.h>  // Per PRIi32
 #include "esp_mac.h"
 
+/** @brief Tag for logging */
 static const char *TAG = "MQTT";
+
+/** @brief MQTT client handle */
 static esp_mqtt_client_handle_t client = NULL;
 
+/** @brief Device unique identifier derived from MAC address */
 static char device_id[16] = {0};
+
+/** @brief MQTT topic for publishing humidity readings */
 static char topic_humidity[64] = {0};
+
+/** @brief MQTT topic for publishing battery voltage readings */
 static char topic_battery[64] = {0};
-static char topic_set[64]={0};
-static char topic_sleep[64]={0};
 
+/** @brief MQTT topic for receiving sleep interval settings */
+static char topic_set[64] = {0};
 
-static void mqtt_event_handler_cb(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
+/** @brief MQTT topic for publishing current sleep interval */
+static char topic_sleep[64] = {0};
+
+/**
+ * @brief MQTT event handler callback
+ * @param handler_args User provided argument (unused)
+ * @param base Event base
+ * @param event_id Event ID received from MQTT client
+ * @param event_data Event data containing MQTT event information
+ */
+static void mqtt_event_handler_cb(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+{
     esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t) event_data;
     
 
@@ -69,7 +94,12 @@ static void mqtt_event_handler_cb(void *handler_args, esp_event_base_t base, int
 }
 
 
-void start_mqtt(void) 
+/**
+ * @brief Initialize and start MQTT client
+ * @details Sets up MQTT client configuration using stored settings,
+ *          initializes device ID and topic names, and starts connection
+ */
+void start_mqtt(void)
 {
     if (device_id[0] == 0) 
     {
@@ -116,7 +146,15 @@ void start_mqtt(void)
 
 }
 
-void mqtt_publish_discovery(void) 
+/**
+ * @brief Publish HomeAssistant MQTT discovery messages
+ * @details Sends device and sensor configuration for HomeAssistant auto-discovery:
+ *          - Humidity sensor configuration
+ *          - Battery voltage sensor configuration
+ *          - Sleep interval control configuration
+ * @note Messages are published with retain flag set to true
+ */
+void mqtt_publish_discovery(void)
 {
     if (!client) {
         ESP_LOGW(TAG, "MQTT client not initialized");
@@ -192,7 +230,15 @@ void mqtt_publish_discovery(void)
     esp_mqtt_client_publish(client, discovery_topic, payload, 0, 1, true);
 }
 
-void mqtt_publish_sensor_data(float humidity, float battery_voltage) 
+/**
+ * @brief Publish sensor readings to MQTT broker
+ * @param humidity Current soil humidity reading in percentage
+ * @param battery_voltage Current battery voltage reading in volts
+ * @details Publishes both humidity and battery readings to their respective topics.
+ *          Values are formatted with appropriate precision (1 decimal for humidity,
+ *          2 decimals for battery voltage)
+ */
+void mqtt_publish_sensor_data(float humidity, float battery_voltage)
 {
     if (!client) {
         ESP_LOGW(TAG, "MQTT client not initialized");
