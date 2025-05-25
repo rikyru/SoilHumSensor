@@ -113,13 +113,30 @@ void start_mqtt(void)
         snprintf(topic_set, sizeof(topic_set), "soil_sensor/%s/sleep_interval/set", device_id);
     }
     config_data_t cfg = config_get();
+    
+    char broker_uri[128] = {0};
 
-    esp_mqtt_client_config_t mqtt_cfg = {
+    // Check host validity
+    if (cfg.mqtt_host[0] == '\0') 
+    {
+        ESP_LOGE(TAG, "MQTT host is empty");
+        return;
+    }
+
+    // User must NOT include mqtt://
+    if (strstr(cfg.mqtt_host, "mqtt://")) 
+    {
+        ESP_LOGE(TAG, "ERROR: mqtt_host should not include 'mqtt://'. Please enter only the hostname.");
+        return;
+    }
+
+    snprintf(broker_uri, sizeof(broker_uri), "mqtt://%s", cfg.mqtt_host);
+
+
+    esp_mqtt_client_config_t mqtt_cfg = 
+    {
         .broker = {
-            .address = {
-                .hostname = cfg.mqtt_host,
-                .port = cfg.mqtt_port,
-            }
+            .address.uri = broker_uri
         },
         .credentials = {
             .username = cfg.mqtt_user,
@@ -134,7 +151,12 @@ void start_mqtt(void)
             .disable_auto_reconnect = false,
         },
     };
-
+    ESP_LOGI(TAG, "MQTT config:");
+    ESP_LOGI(TAG, "  URI: %s", mqtt_cfg.broker.address.uri);
+    ESP_LOGI(TAG, "  Username: %s", mqtt_cfg.credentials.username ? mqtt_cfg.credentials.username : "(none)");
+    ESP_LOGI(TAG, "  Password: %s", mqtt_cfg.credentials.authentication.password ? mqtt_cfg.credentials.authentication.password : "(none)");
+    ESP_LOGI(TAG, "  Keepalive: %d", mqtt_cfg.session.keepalive);
+    ESP_LOGI(TAG, "  Disable auto reconnect: %s", mqtt_cfg.network.disable_auto_reconnect ? "true" : "false");
     client = esp_mqtt_client_init(&mqtt_cfg);
     if (!client) {
         ESP_LOGE(TAG, "Failed to init MQTT client");
