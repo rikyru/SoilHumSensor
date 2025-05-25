@@ -14,6 +14,22 @@
 
 static const char *TAG = "MAIN";
 
+void battery_task(void *param) {
+    while (1) {
+        float vbat = read_battery_voltage();
+        float humidity = 0; // forced
+
+        if (vbat > 0) {
+            char msg[16];
+            snprintf(msg, sizeof(msg), "%.2f", vbat);
+            mqtt_publish_sensor_data(humidity, vbat);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(30000));  // ogni 30s
+    }
+}
+
+
 static void on_wifi_connected(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
     if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
@@ -21,9 +37,10 @@ static void on_wifi_connected(void* arg, esp_event_base_t event_base, int32_t ev
         ESP_LOGI(TAG, "Got IP, starting MQTT...");
 
         start_mqtt();
+        xTaskCreate(battery_task, "battery_task", 2048, NULL, 5, NULL);
 
     //     float humidity = read_soil_moisture();
-    //     float battery = read_battery_voltage();
+        float battery = read_battery_voltage();
     //     mqtt_publish_sensor_data(humidity, battery);
 
     //     mqtt_listen_for_sleep_update();
@@ -39,12 +56,14 @@ void app_main(void) {
     }
 
     config_load();
+    sensor_init();  // Inizializza i sensori
 
     if (!config_is_valid()) {
         ESP_LOGI(TAG, "No valid config found, starting provisioning.");
         start_wifi_provisioning();
         return;
     }
+    
 
     // Event loop + handler per connessione Wi-Fi
     ESP_ERROR_CHECK(esp_event_loop_create_default());
