@@ -35,6 +35,7 @@ static void on_wifi_connected(void* arg, esp_event_base_t event_base, int32_t ev
     if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
     {
         ESP_LOGI(TAG, "Got IP, starting MQTT...");
+        //test commit
 
         start_mqtt();
         xTaskCreate(battery_task, "battery_task", 2048, NULL, 5, NULL);
