@@ -13,3 +13,4 @@ __pycache__/
 
 # VSCode settings (opzionale)
 .vscode/
+.vscode/settings.json
