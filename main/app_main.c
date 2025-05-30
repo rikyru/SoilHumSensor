@@ -27,9 +27,10 @@ void battery_task(void *param) {
             char msg[16];
             snprintf(msg, sizeof(msg), "%.2f", vbat);
             mqtt_publish_sensor_data(humidity, vbat);
+            vTaskDelay(pdMS_TO_TICKS(2000));  // aspetta 2s per sicurezza che parta MQTT
         }
 
-        vTaskDelay(pdMS_TO_TICKS(30000));  // ogni 30s
+        enter_deep_sleep(30);  // dormi 30 secondi
     }
 }
 
@@ -52,26 +53,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
         xEventGroupClearBits(wifi_event_group, WIFI_DISCONNECTED_BIT);
     }
 }
-/*
-static void on_wifi_connected(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
-{
-    if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
-    {
-        ESP_LOGI(TAG, "Got IP, starting MQTT...");
-        //test commit
 
-        start_mqtt();
-        xTaskCreate(battery_task, "battery_task", 2048, NULL, 5, NULL);
-
-    //     float humidity = read_soil_moisture();
-        float battery = read_battery_voltage();
-    //     mqtt_publish_sensor_data(humidity, battery);
-
-    //     mqtt_listen_for_sleep_update();
-    //     sleep_control_enter();
-    }
-}
-*/
 
 void app_main(void) {
     esp_err_t ret = nvs_flash_init();
