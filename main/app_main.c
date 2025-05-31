@@ -30,7 +30,7 @@ void battery_task(void *param) {
             vTaskDelay(pdMS_TO_TICKS(2000));  // aspetta 2s per sicurezza che parta MQTT
         }
 
-        enter_deep_sleep(30);  // dormi 30 secondi
+        enter_deep_sleep();  // sleep if enabled
     }
 }
 

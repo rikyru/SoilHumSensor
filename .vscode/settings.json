@@ -16,6 +16,7 @@
   "idf.flashType": "UART",
   "files.associations": {
     "esp_log.h": "c",
-    "config.h": "c"
+    "config.h": "c",
+    "mqtt_wrapper.h": "c"
   }
 }

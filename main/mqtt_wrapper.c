@@ -74,7 +74,7 @@ static void mqtt_event_handler_cb(void *handler_args, esp_event_base_t base, int
                 memcpy(val_str, event->data, MIN(event->data_len, sizeof(val_str) - 1));
                 int new_minutes = atoi(val_str);
 
-                if (new_minutes >= 1 && new_minutes <= 1440) {
+                if (new_minutes >= 0 && new_minutes <= 1440) {
                     config_data_t cfg = config_get();
                     cfg.sleep_minutes = new_minutes;
                     config_save(&cfg);
@@ -198,7 +198,7 @@ void mqtt_publish_discovery(void)
             "\"device\":{"
                 "\"identifiers\":[\"%s\"],"
                 "\"name\":\"SoilSensor %s\","
-                "\"manufacturer\":\"Rikyru\","
+                "\"manufacturer\":\"rikyru\","
                 "\"model\":\"ESP32-C3 SoilSensor\""
             "}"
         "}", topic_humidity, device_id, device_id, device_id);
@@ -219,7 +219,7 @@ void mqtt_publish_discovery(void)
             "\"device\":{"
                 "\"identifiers\":[\"%s\"],"
                 "\"name\":\"SoilSensor %s\","
-                "\"manufacturer\":\"Rikyru\","
+                "\"manufacturer\":\"rikyru\","
                 "\"model\":\"ESP32-C3 SoilSensor\""
             "}"
         "}", topic_battery, device_id, device_id, device_id);
@@ -235,13 +235,14 @@ void mqtt_publish_discovery(void)
         "\"command_topic\":\"soil_sensor/%s/sleep_interval/set\","
         "\"state_topic\":\"soil_sensor/%s/sleep_interval\","
         "\"unit_of_measurement\":\"min\","
-        "\"min\":1,\"max\":1440,\"step\":1,"
+        "\"min\":0,\"max\":1440,\"step\":1,"
         "\"mode\":\"box\","
+        "\"retain\":true,"
         "\"unique_id\":\"%s_sleep_interval\","
         "\"device\":{"
             "\"identifiers\":[\"%s\"],"
             "\"name\":\"SoilSensor %s\","
-            "\"manufacturer\":\"Rikyru\","
+            "\"manufacturer\":\"rikyru\","
             "\"model\":\"ESP32-C3 SoilSensor\""
         "}"
     "}", device_id, device_id, device_id, device_id, device_id);
