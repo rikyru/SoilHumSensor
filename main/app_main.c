@@ -21,7 +21,7 @@ static EventGroupHandle_t wifi_event_group;
 void battery_task(void *param) {
     while (1) {
         float vbat = read_battery_voltage();
-        float humidity = 0; // forced
+        float humidity = read_soil_moisture(); // forced
 
         if (vbat > 0) {
             char msg[16];
