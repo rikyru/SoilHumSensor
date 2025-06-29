@@ -69,7 +69,15 @@ float read_soil_moisture(void) {
     vTaskDelay(pdMS_TO_TICKS(1500));  // attesa stabilizzazione
 
     int raw = 0;
-    esp_err_t err = adc_oneshot_read(adc_handle, SOIL_ADC_CHANNEL, &raw);
+    esp_err_t err;// adc_oneshot_read(adc_handle, SOIL_ADC_CHANNEL, &raw);
+    float sum = 0;
+    for (int i=0; i<10; i++) 
+    {
+        err  = adc_oneshot_read(adc_handle, SOIL_ADC_CHANNEL, &raw);
+        sum += raw;
+        vTaskDelay(pdMS_TO_TICKS(80));  // piccolo ritardo tra letture
+    }
+    float average = sum / 10.0f;
 
     // Spegni il sensore
     gpio_set_level(SOIL_POWER_GPIO, 0);
@@ -80,7 +88,7 @@ float read_soil_moisture(void) {
     }
 
     // Mappatura: più bagnato = valore più basso
-    float moisture_percent = 100.0f - ((raw / 4095.0f) * 100.0f);
-    ESP_LOGI(TAG, "Moisture raw: %d -> %.1f %%", raw, moisture_percent);
+    float moisture_percent = 100.0f - ((average / 4095.0f) * 100.0f);
+    ESP_LOGI(TAG, "Moisture raw: %f -> %.1f %%", average, moisture_percent);
     return moisture_percent;
 }
