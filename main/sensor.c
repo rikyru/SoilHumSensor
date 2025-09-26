@@ -154,4 +154,26 @@ float read_soil_moisture(void) {
 
     return moisture_percent;
 }
+/*
+READ AVG MOISTURE
+*/
+int sensor_read_soil_raw_avg(void) {
+    // accendi
+    gpio_set_level(SOIL_POWER_GPIO, 1);
+    vTaskDelay(pdMS_TO_TICKS(1500));
+
+    int raw = 0, sum = 0;
+    esp_err_t err = ESP_OK;
+    for (int i = 0; i < 10; i++) {
+        err = adc_oneshot_read(adc_handle, SOIL_ADC_CHANNEL, &raw);
+        if (err != ESP_OK) break;
+        sum += raw;
+        vTaskDelay(pdMS_TO_TICKS(80));
+    }
+    // spegni
+    gpio_set_level(SOIL_POWER_GPIO, 0);
+
+    if (err != ESP_OK) return -1;
+    return (sum + 5) / 10;
+}
 

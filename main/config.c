@@ -2,6 +2,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include <string.h>
+#include "esp_log.h"
 
 static config_data_t config;
 static bool loaded = false;
@@ -33,12 +34,17 @@ void config_load(void) {
         }
         nvs_close(handle);
     }
-    if (!loaded) 
+/*     if (!loaded) 
     {
         // === NEW: se non trovato → default + salva
         config_apply_defaults(&config);
         config_save(&config);
-        loaded = true;
+        //loaded = true;
+    } */
+    if (config.wifi_ssid[0] == '\0') 
+    {
+        ESP_LOGW("PROVISIONING","SSID vuoto: avvio provisioning");
+        loaded = false;
     }
 }
 

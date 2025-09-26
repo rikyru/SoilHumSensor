@@ -47,7 +47,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
         ESP_LOGI(TAG, "Got IP, starting MQTT...");
 
         start_mqtt();
-        xTaskCreate(battery_task, "battery_task", 2048, NULL, 5, NULL);
+        xTaskCreate(battery_task, "battery_task", 4096, NULL, 5, NULL);
 
         xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
         xEventGroupClearBits(wifi_event_group, WIFI_DISCONNECTED_BIT);

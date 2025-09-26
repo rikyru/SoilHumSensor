@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.espIdfPathWin": "c:\\Compiler\\Espressif\\frameworks\\v5.4.1\\esp-idf",
-  "idf.pythonInstallPath": "C:\\Compiler\\Espressif\\tools\\idf-python\\3.11.2\\python.exe",
+  "idf.pythonInstallPath": "/usr/bin/python3",
   "idf.openOcdConfigs": [
     "board/esp32c3-builtin.cfg"
   ],
@@ -19,5 +19,6 @@
     "config.h": "c",
     "mqtt_wrapper.h": "c",
     "wifi_provisioning.h": "c"
-  }
+  },
+  "idf.port": "/dev/tty.usbmodem14301"
 }
